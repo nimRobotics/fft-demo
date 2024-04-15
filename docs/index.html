@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mass-Spring-Damper Animation</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="myCanvas" width="600" height="400"></canvas>
+    <br>
+    Mass: <input type="range" min="1" max="100" value="5" id="massSlider">
+    Damper: <input type="range" min="0.1" max="10" step="0.1" value="0.5" id="damperSlider">
+    Spring Constant: <input type="range" min="1" max="1000" value="5" id="springConstantSlider">
+    <br>
+    Mean Frequency: <span id="meanFrequency">0</span>
+    <script>
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+        const massSlider = document.getElementById("massSlider");
+        const damperSlider = document.getElementById("damperSlider");
+        const springConstantSlider = document.getElementById("springConstantSlider");
+        const meanFrequencySpan = document.getElementById("meanFrequency");
+
+        let mass = 5;
+        let damper = 0.5;
+        let springConstant = 5;
+        let position = 100;
+        let velocity = 0;
+        let acceleration = 0;
+        let time = 0;
+        const dt = 0.01;
+        const equilibriumPosition = 200;
+
+        function calculateAcceleration() {
+            const force = -springConstant * (position - equilibriumPosition) - damper * velocity;
+            acceleration = force / mass;
+        }
+
+        function updateState() {
+            velocity += acceleration * dt;
+            position += velocity * dt;
+            time += dt;
+        }
+
+        function calculateMeanFrequency() {
+            const undampedFrequency = Math.sqrt(springConstant / mass);
+            const dampingRatio = damper / (2 * Math.sqrt(mass * springConstant));
+            const meanFrequency = undampedFrequency * Math.sqrt(1 - dampingRatio ** 2);
+            return meanFrequency;
+        }
+
+        function drawAnimation() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.moveTo(0, equilibriumPosition);
+            ctx.lineTo(canvas.width, equilibriumPosition);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(100, position, 20, 0, 2 * Math.PI);
+            ctx.fill();
+            calculateAcceleration();
+            updateState();
+            meanFrequencySpan.textContent = calculateMeanFrequency().toFixed(2);
+            requestAnimationFrame(drawAnimation);
+        }
+
+        massSlider.addEventListener("input", () => {
+            mass = parseFloat(massSlider.value);
+        });
+
+        damperSlider.addEventListener("input", () => {
+            damper = parseFloat(damperSlider.value);
+        });
+
+        springConstantSlider.addEventListener("input", () => {
+            springConstant = parseFloat(springConstantSlider.value);
+        });
+
+        drawAnimation();
+    </script>
+</body>
+</html>
